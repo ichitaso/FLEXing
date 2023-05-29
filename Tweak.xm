@@ -84,6 +84,7 @@ inline BOOL flexAlreadyLoaded() {
         // FLEXing.dylib itself does not hard-link against libFLEX.dylib,
         // instead libFLEX.dylib provides getters for the relevant class
         // objects so that it can be updated independently of THIS tweak.
+        NSLog(@"flexAlreadyLoaded()");
         FLXGetManager = (id(*)())dlsym(handle, "FLXGetManager");
         FLXRevealSEL = (SEL(*)())dlsym(handle, "FLXRevealSEL");
         FLXWindowClass = (Class(*)())dlsym(handle, "FLXWindowClass");
