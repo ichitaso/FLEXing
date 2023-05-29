@@ -6,12 +6,15 @@
 //  Copyright © 2016 Tanner Bennett. All rights reserved.
 //
 
-
+#import "FLEXWindow.h"
+#import "FLEXManager.h"
 #import "Interfaces.h"
 
 BOOL initialized = NO;
 id manager = nil;
 SEL show = nil;
+
+static BOOL gestureLoaded = NO;
 
 static NSHashTable *windowsWithGestures = nil;
 
@@ -107,20 +110,20 @@ inline BOOL flexAlreadyLoaded() {
 - (void)becomeKeyWindow {
     %orig;
 
-    if (!initialized) {
+    /*if (!initialized) {
         return;
-    }
+    }*/
 
     BOOL needsGesture = ![windowsWithGestures containsObject:self];
-    BOOL isFLEXWindow = [self isKindOfClass:FLXWindowClass()];
+    BOOL isFLEXWindow = [self isKindOfClass:[FLEXWindow class]];
     BOOL isStatusBar  = [self isKindOfClass:[UIStatusBarWindow class]];
     if (needsGesture && !isFLEXWindow && !isStatusBar) {
         [windowsWithGestures addObject:self];
 
         // Add 3-finger long-press gesture for apps without a status bar
-        UILongPressGestureRecognizer *tap = [[UILongPressGestureRecognizer alloc] initWithTarget:manager action:show];
+        UILongPressGestureRecognizer *tap = [[UILongPressGestureRecognizer alloc] initWithTarget:[FLEXManager sharedManager] action:@selector(showExplorer)];
         tap.minimumPressDuration = .5;
-        tap.numberOfTouchesRequired = 3;
+        tap.numberOfTouchesRequired = 2;
 
         [self addGestureRecognizer:tap];
     }
@@ -131,9 +134,10 @@ inline BOOL flexAlreadyLoaded() {
 - (id)initWithFrame:(CGRect)frame {
     self = %orig;
     
-    if (initialized) {
+    if (!gestureLoaded) {
         // Add long-press gesture to status bar
-        [self addGestureRecognizer:[[UILongPressGestureRecognizer alloc] initWithTarget:manager action:show]];
+        [self addGestureRecognizer:[[UILongPressGestureRecognizer alloc] initWithTarget:[FLEXManager sharedManager] action:@selector(showExplorer)]];
+        gestureLoaded = YES;
     }
     
     return self;
